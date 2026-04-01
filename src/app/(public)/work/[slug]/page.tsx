@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getProjectBySlug, getAllPublishedProjects } from "@/lib/queries/projects";
-import { formatDate } from "@/lib/utils";
+import { Gallery } from "@/components/portfolio/Gallery";
+import { RelatedProjects } from "@/components/portfolio/RelatedProjects";
 
 interface Props {
   params: { slug: string };
@@ -18,9 +19,15 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const project = await getProjectBySlug(params.slug);
   if (!project) return {};
+  const cover = project.coverImage as { url: string } | null;
   return {
     title: project.title,
     description: project.tagline ?? project.description ?? undefined,
+    openGraph: {
+      title: project.title,
+      description: project.tagline ?? undefined,
+      images: cover ? [{ url: cover.url, width: 1200, height: 630 }] : [],
+    },
   };
 }
 
@@ -29,77 +36,84 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const cover = project.coverImage as { url: string; alt: string; width: number; height: number } | null;
-  const images = (project.images as Array<{ url: string; alt: string; caption?: string }>) ?? [];
+  const images = (project.images as Array<{ url: string; alt: string; caption?: string; width?: number; height?: number }>) ?? [];
   const tags = (project.tags as string[]) ?? [];
   const services = (project.services as string[]) ?? [];
 
   return (
     <article className="pt-32 pb-24">
       <div className="max-w-8xl mx-auto px-6 md:px-12">
+
         {/* Back */}
         <Link
           href="/work"
-          className="inline-flex items-center gap-2 label hover:text-ink transition-colors mb-12"
+          className="inline-flex items-center gap-2 label hover:text-ink transition-colors mb-12 group"
         >
-          <ArrowLeft size={14} /> All Work
+          <ArrowLeft size={14} className="transition-transform duration-200 group-hover:-translate-x-1" />
+          All Work
         </Link>
 
         {/* Header */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16 pb-12 border-b border-paper-border">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 animate-fade-up">
             {project.category && (
               <p className="label mb-4">{project.category.name}</p>
             )}
-            <h1 className="font-display font-light text-ink mb-4">
+            <h1 className="font-display font-light text-ink mb-5">
               {project.title}
             </h1>
             {project.tagline && (
-              <p className="text-xl text-ink-muted leading-relaxed">
+              <p className="text-xl text-ink-muted leading-relaxed max-w-xl">
                 {project.tagline}
               </p>
             )}
           </div>
 
           {/* Metadata sidebar */}
-          <div className="flex flex-col gap-6 lg:pt-2">
-            {project.client && (
-              <div>
-                <p className="label mb-1">Client</p>
-                <p className="text-sm text-ink-soft">{project.client}</p>
-              </div>
+          <aside className="flex flex-col gap-6 animate-fade-up animation-delay-100 lg:border-l lg:border-paper-border lg:pl-10">
+            {[
+              { label: "Client", value: project.client },
+              { label: "Year", value: project.year?.toString() },
+              { label: "Category", value: project.category?.name },
+            ].map(({ label, value }) =>
+              value ? (
+                <div key={label}>
+                  <p className="label mb-1">{label}</p>
+                  <p className="text-sm text-ink-soft">{value}</p>
+                </div>
+              ) : null
             )}
-            {project.year && (
-              <div>
-                <p className="label mb-1">Year</p>
-                <p className="text-sm text-ink-soft">{project.year}</p>
-              </div>
-            )}
+
             {services.length > 0 && (
               <div>
                 <p className="label mb-2">Services</p>
-                <div className="flex flex-col gap-1">
+                <ul className="flex flex-col gap-1">
                   {services.map((s) => (
-                    <p key={s} className="text-sm text-ink-soft">{s}</p>
+                    <li key={s} className="flex items-center gap-2 text-sm text-ink-soft">
+                      <span className="w-1 h-1 rounded-full bg-accent shrink-0" />
+                      {s}
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             )}
+
             {project.externalUrl && (
               <a
                 href={project.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 label hover:text-ink transition-colors"
+                className="inline-flex items-center gap-2 label hover:text-ink transition-colors mt-2"
               >
                 View Live <ExternalLink size={12} />
               </a>
             )}
-          </div>
+          </aside>
         </div>
 
         {/* Cover image */}
         {cover && (
-          <div className="mb-6 bg-paper-warm overflow-hidden">
+          <div className="mb-16 overflow-hidden bg-paper-warm animate-fade-up animation-delay-200">
             <Image
               src={cover.url}
               alt={cover.alt || project.title}
@@ -113,46 +127,29 @@ export default async function ProjectPage({ params }: Props) {
 
         {/* Description */}
         {project.description && (
-          <div className="max-w-2xl mt-16 mb-16">
+          <div className="max-w-2xl mb-20 reveal">
             <p className="label mb-4">About the Project</p>
-            <p className="text-ink-soft leading-relaxed whitespace-pre-line">
+            <p className="text-ink-soft leading-relaxed whitespace-pre-line text-lg">
               {project.description}
             </p>
           </div>
         )}
 
-        {/* Gallery */}
+        {/* Gallery with lightbox */}
         {images.length > 0 && (
-          <div className="mb-16">
+          <div className="mb-20 reveal">
             <p className="label mb-6">Gallery</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-paper-border">
-              {images.map((img, i) => (
-                <div key={i} className="bg-paper-warm overflow-hidden">
-                  <Image
-                    src={img.url}
-                    alt={img.alt || `${project.title} — ${i + 1}`}
-                    width={800}
-                    height={600}
-                    className="w-full object-cover"
-                  />
-                  {img.caption && (
-                    <p className="px-4 py-3 text-xs text-ink-muted font-mono">
-                      {img.caption}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            <Gallery images={images} />
           </div>
         )}
 
         {/* Tags */}
         {tags.length > 0 && (
-          <div className="border-t border-paper-border pt-8 flex flex-wrap gap-2">
+          <div className="border-t border-paper-border pt-8 mb-16 flex flex-wrap gap-2 reveal">
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="text-xs font-mono text-ink-muted border border-paper-border px-3 py-1"
+                className="text-xs font-mono text-ink-muted border border-paper-border px-3 py-1.5 hover:border-ink hover:text-ink transition-colors duration-200"
               >
                 {tag}
               </span>
@@ -160,10 +157,19 @@ export default async function ProjectPage({ params }: Props) {
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="mt-20 pt-10 border-t border-paper-border">
+        {/* Related projects */}
+        <RelatedProjects
+          currentProjectId={project.id}
+          categoryId={project.categoryId}
+        />
+
+        {/* Navigation footer */}
+        <div className="mt-16 pt-10 border-t border-paper-border flex items-center justify-between">
           <Link href="/work" className="btn-ghost">
-            <ArrowLeft size={16} /> Back to All Work
+            <ArrowLeft size={16} /> All Work
+          </Link>
+          <Link href="/contact" className="btn-primary">
+            Start a Project
           </Link>
         </div>
       </div>

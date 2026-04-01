@@ -9,6 +9,7 @@ import {
   Settings,
   Tag,
   Mail,
+  ArrowUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,11 @@ const navItems = [
     label: "Projects",
     href: "/admin/projects",
     icon: FolderOpen,
+  },
+  {
+    label: "Sort Order",
+    href: "/admin/sort",
+    icon: ArrowUpDown,
   },
   {
     label: "Categories",

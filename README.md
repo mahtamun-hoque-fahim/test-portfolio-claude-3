@@ -262,3 +262,4 @@ Auto-generated at build/request time via `next/og`:
 - [x] **Phase 1** — Scaffold, DB schema, public portfolio pages, admin CMS shell
 - [x] **Phase 2** — About, Contact + Resend email, Media library, Settings editor, Inquiries inbox, Categories, SEO, 404/Error pages
 - [x] **Phase 3** — Animations, scroll-reveal, custom cursor, marquee strips, animated stats, OG image generation (home + per-project), performance optimisations, security headers, Cloudflare Pages config, Vercel config
+- [x] **Phase 4** — Image lightbox gallery, related projects, drag-and-drop sort order, gallery multi-upload in admin, animated about page with stats, enhanced project detail page, granular loading skeletons for every route

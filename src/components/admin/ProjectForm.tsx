@@ -20,15 +20,19 @@ export function ProjectForm({ categories, project }: ProjectFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [coverImage, setCoverImage] = useState<{
-    publicId: string;
-    url: string;
-    width: number;
-    height: number;
-    alt: string;
+    publicId: string; url: string; width: number; height: number; alt: string;
   } | null>(
     project?.coverImage
       ? (project.coverImage as { publicId: string; url: string; width: number; height: number; alt: string })
       : null
+  );
+
+  const [galleryImages, setGalleryImages] = useState<Array<{
+    publicId: string; url: string; width: number; height: number; alt: string;
+  }>>(
+    Array.isArray(project?.images)
+      ? (project.images as Array<{ publicId: string; url: string; width: number; height: number; alt: string }>)
+      : []
   );
 
   const {
@@ -98,6 +102,7 @@ export function ProjectForm({ categories, project }: ProjectFormProps) {
       const payload = {
         ...data,
         coverImage: coverImage ?? undefined,
+        images: galleryImages,
       };
 
       const url = project
@@ -230,6 +235,51 @@ export function ProjectForm({ categories, project }: ProjectFormProps) {
               </button>
             )}
           </CldUploadWidget>
+        )}
+      </section>
+
+      {/* ── Gallery Images ─────────────────────────── */}
+      <section className="bg-paper border border-paper-border p-6 space-y-4">
+        <h2 className="font-display text-xl text-ink border-b border-paper-border pb-4">
+          Gallery Images
+        </h2>
+
+        <CldUploadWidget
+          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+          options={{ multiple: true, folder: "portfolio/gallery" }}
+          onSuccess={(result) => {
+            if (result.event === "success" && result.info && typeof result.info === "object") {
+              const info = result.info as { public_id: string; secure_url: string; width: number; height: number };
+              setGalleryImages((prev) => [
+                ...prev,
+                { publicId: info.public_id, url: info.secure_url, width: info.width, height: info.height, alt: watch("title") || "Gallery image" },
+              ]);
+            }
+          }}
+        >
+          {({ open }) => (
+            <button type="button" onClick={() => open()} className="flex items-center gap-3 px-6 py-4 border border-dashed border-paper-border hover:border-ink text-ink-muted hover:text-ink transition-all duration-200 w-full">
+              <Upload size={18} />
+              <span className="text-sm">Upload gallery images (multiple allowed)</span>
+            </button>
+          )}
+        </CldUploadWidget>
+
+        {galleryImages.length > 0 && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+            {galleryImages.map((img, i) => (
+              <div key={img.publicId} className="relative group aspect-square">
+                <img src={img.url} alt="" className="w-full h-full object-cover border border-paper-border" />
+                <button
+                  type="button"
+                  onClick={() => setGalleryImages((prev) => prev.filter((_, idx) => idx !== i))}
+                  className="absolute top-1 right-1 p-0.5 bg-paper border border-paper-border opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </section>
 
