@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Cormorant, DM_Sans, DM_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { CustomCursor } from "@/components/ui/CustomCursor";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import "./globals.css";
 
 const cormorant = Cormorant({
@@ -51,6 +53,8 @@ export default function RootLayout({
         className={`${cormorant.variable} ${dmSans.variable} ${dmMono.variable}`}
       >
         <body className="bg-paper text-ink font-body antialiased">
+          <CustomCursor />
+          <ScrollReveal />
           {children}
           <Toaster position="bottom-right" richColors />
         </body>

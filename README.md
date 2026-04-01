@@ -191,8 +191,74 @@ npx tsx src/db/seed.ts  # Re-seed default data
 
 ---
 
-## Phase Roadmap
+## Animation System
+
+Phase 3 adds a full scroll-driven animation layer:
+
+| Component | File | Description |
+|---|---|---|
+| `ScrollReveal` | `components/ui/ScrollReveal.tsx` | Wires IntersectionObserver to `.reveal`, `.reveal-left`, `.reveal-scale` classes |
+| `Animate` | `components/ui/Animate.tsx` | Programmatic fade-up wrapper with delay & threshold props |
+| `AnimatedNumber` | `components/ui/AnimatedNumber.tsx` | Counts up to a value when scrolled into view |
+| `MarqueeStrip` | `components/ui/MarqueeStrip.tsx` | Seamless infinite horizontal scroll strip |
+| `CustomCursor` | `components/ui/CustomCursor.tsx` | Dot + lagged ring cursor (pointer-fine devices only) |
+| `ScrollProgress` | `components/ui/ScrollProgress.tsx` | Gold accent bar at top of page tracking read progress |
+| `PageTransition` | `components/ui/PageTransition.tsx` | Fade+slide on route change |
+| `BlurImage` | `components/ui/BlurImage.tsx` | Progressive blur-up image with skeleton shimmer |
+| `useInView` | `hooks/useInView.ts` | IntersectionObserver hook |
+| `useScrollProgress` | `hooks/useScrollProgress.ts` | Scroll progress 0→1 hook |
+
+**CSS utilities added** (in `globals.css`):
+- `.reveal`, `.reveal-left`, `.reveal-scale` + `.is-visible` — scroll-triggered classes
+- `.hover-lift` — smooth lift + shadow on hover
+- `.img-zoom` — scale image on hover
+- `.skeleton` — shimmer loading state
+- `.stagger-children` — auto-stagger up to 6 children
+- `.page-enter` — one-shot page load animation
+- `@keyframes marquee`, `scrollLine`, `shimmer`, `pageEnter`
+- View Transitions API (`@view-transition { navigation: auto }`)
+
+**Usage examples:**
+```tsx
+// Scroll reveal via CSS class
+<section className="reveal" data-delay="200">...</section>
+
+// Programmatic animated wrapper
+<Animate delay={300} y={32}>
+  <Card />
+</Animate>
+
+// Animated stat counter
+<AnimatedNumber value={50} suffix="+" />
+
+// Marquee
+<MarqueeStrip items={["Brand Identity", "Logo Design"]} speed={25} />
+```
+
+---
+
+## OG Images
+
+Auto-generated at build/request time via `next/og`:
+
+| Route | Output |
+|---|---|
+| `/opengraph-image` | Light grid card — site name, heading, category tags |
+| `/work/[slug]/opengraph-image` | Dark card — project title, tagline, category |
+
+---
+
+## Performance
+
+- **AVIF + WebP** image formats via `next/image`
+- **30-day CDN cache** on Cloudinary images
+- **Immutable cache** on `/_next/static/*`
+- `removeConsole` in production build
+- `optimizePackageImports` for `lucide-react` and `date-fns`
+- Security headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`
+
+---
 
 - [x] **Phase 1** — Scaffold, DB schema, public portfolio pages, admin CMS shell
 - [x] **Phase 2** — About, Contact + Resend email, Media library, Settings editor, Inquiries inbox, Categories, SEO, 404/Error pages
-- [ ] **Phase 3** — Animations, transitions, OG image generation, performance audit, Cloudflare deployment config
+- [x] **Phase 3** — Animations, scroll-reveal, custom cursor, marquee strips, animated stats, OG image generation (home + per-project), performance optimisations, security headers, Cloudflare Pages config, Vercel config

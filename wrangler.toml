@@ -1,0 +1,24 @@
+name = "mahtamun-portfolio"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_PUBLIC_SITE_URL = "https://mahtamunhoquefahim.pages.dev"
+
+# ── Notes ────────────────────────────────────────────────────────
+# For Cloudflare Pages deployment via dashboard:
+#
+# 1. Connect your GitHub repo in Cloudflare Pages
+# 2. Framework preset: Next.js
+# 3. Build command: npx @cloudflare/next-on-pages@1
+# 4. Build output directory: .vercel/output/static
+# 5. Add all environment variables from .env.local.example
+#
+# Edge runtime note:
+# Neon serverless works on Cloudflare edge via @neondatabase/serverless.
+# Clerk works on edge via @clerk/nextjs.
+# Cloudinary admin SDK (used in /api/admin/media) requires Node.js —
+# the media delete route uses `nodejs_compat` flag above.
+#
+# Alternatively, deploy to Vercel for zero-config Next.js support.
