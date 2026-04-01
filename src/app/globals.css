@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ──────────────────────────────────── */
+:root {
+  --ink: #111111;
+  --ink-soft: #333333;
+  --ink-muted: #666666;
+  --ink-faint: #999999;
+  --paper: #fafaf8;
+  --paper-warm: #f5f3ef;
+  --paper-border: #e8e6e1;
+  --accent: #c8a96e;
+  --accent-light: #e8d5a8;
+  --accent-dark: #9c7a3c;
+}
+
+/* ─── Base ───────────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: var(--accent-light);
+    color: var(--ink);
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--paper-warm);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--paper-border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-faint);
+  }
+}
+
+/* ─── Typography ─────────────────────────────────────────────── */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-cormorant), Georgia, serif;
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  h1 { font-size: clamp(2.5rem, 6vw, 5rem); }
+  h2 { font-size: clamp(2rem, 4vw, 3.5rem); }
+  h3 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+
+  p {
+    line-height: 1.75;
+    color: var(--ink-soft);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* ─── Components ─────────────────────────────────────────────── */
+@layer components {
+  /* Label / eyebrow text style */
+  .label {
+    @apply font-mono text-xs tracking-widest2 uppercase text-ink-muted;
+  }
+
+  /* Thin horizontal rule */
+  .rule {
+    @apply border-t border-paper-border;
+  }
+
+  /* Animated underline link */
+  .link-underline {
+    @apply relative inline-block;
+  }
+  .link-underline::after {
+    content: "";
+    @apply absolute bottom-0 left-0 w-0 h-px bg-accent transition-all duration-300 ease-out-expo;
+  }
+  .link-underline:hover::after {
+    @apply w-full;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 bg-ink text-paper text-sm font-body font-medium
+           tracking-wide transition-all duration-300 ease-out-expo
+           hover:bg-ink-soft active:scale-[0.98];
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 border border-paper-border text-ink text-sm font-body font-medium
+           tracking-wide transition-all duration-300 ease-out-expo
+           hover:border-ink hover:bg-ink hover:text-paper active:scale-[0.98];
+  }
+
+  /* Accent button */
+  .btn-accent {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 bg-accent text-paper text-sm font-body font-medium
+           tracking-wide transition-all duration-300 ease-out-expo
+           hover:bg-accent-dark active:scale-[0.98];
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-transform duration-500 ease-out-expo hover:-translate-y-1;
+  }
+
+  /* Image overlay on hover */
+  .img-overlay {
+    @apply relative overflow-hidden;
+  }
+  .img-overlay::after {
+    content: "";
+    @apply absolute inset-0 bg-ink/0 transition-colors duration-500;
+  }
+  .img-overlay:hover::after {
+    @apply bg-ink/10;
+  }
+
+  /* Admin sidebar item */
+  .admin-nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 text-sm font-body font-medium
+           text-ink-muted rounded-md transition-colors duration-200
+           hover:text-ink hover:bg-paper-warm;
+  }
+  .admin-nav-item.active {
+    @apply text-ink bg-paper-warm;
+  }
+
+  /* Form input */
+  .form-input {
+    @apply w-full px-4 py-3 bg-white border border-paper-border text-sm text-ink
+           placeholder:text-ink-faint
+           focus:outline-none focus:border-ink transition-colors duration-200;
+  }
+
+  .form-label {
+    @apply block text-xs font-mono tracking-widest uppercase text-ink-muted mb-2;
+  }
+}
+
+/* ─── Utilities ──────────────────────────────────────────────── */
+@layer utilities {
+  .animation-delay-100 { animation-delay: 100ms; }
+  .animation-delay-200 { animation-delay: 200ms; }
+  .animation-delay-300 { animation-delay: 300ms; }
+  .animation-delay-400 { animation-delay: 400ms; }
+  .animation-delay-500 { animation-delay: 500ms; }
+  .animation-delay-600 { animation-delay: 600ms; }
+
+  .text-balance { text-wrap: balance; }
+
+  /* Grain overlay effect */
+  .grain::before {
+    content: "";
+    position: fixed;
+    inset: -200%;
+    width: 400%;
+    height: 400%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 9999;
+  }
+}
