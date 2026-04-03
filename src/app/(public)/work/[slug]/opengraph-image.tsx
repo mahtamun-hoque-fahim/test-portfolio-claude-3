@@ -9,7 +9,7 @@ interface Props {
   params: { slug: string };
 }
 
-export default async function ProjectOGImage({ params }: Props) {
+export default async function Image({ params }: Props) {
   const project = await getProjectBySlug(params.slug);
 
   const title = project?.title ?? "Project";

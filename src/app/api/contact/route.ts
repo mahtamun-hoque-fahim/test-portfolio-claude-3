@@ -4,9 +4,8 @@ import { db } from "@/db";
 import { inquiries } from "@/db/schema";
 import { contactSchema } from "@/lib/validations";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: Request) {
+  const resend = new Resend(process.env.RESEND_API_KEY ?? "placeholder");
   try {
     const body = await req.json();
     const data = contactSchema.parse(body);

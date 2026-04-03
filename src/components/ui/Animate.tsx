@@ -1,18 +1,18 @@
 "use client";
 
-import { useRef, useEffect, useState, type ReactNode, type CSSProperties } from "react";
+import { useRef, useEffect, useState, type ReactNode, type CSSProperties, type ElementType } from "react";
 import { cn } from "@/lib/utils";
 
 interface AnimateProps {
   children: ReactNode;
   className?: string;
-  delay?: number;           // ms
-  duration?: number;        // ms
-  y?: number;               // px translateY start offset
+  delay?: number;
+  duration?: number;
+  y?: number;
   once?: boolean;
   threshold?: number;
   style?: CSSProperties;
-  as?: keyof JSX.IntrinsicElements;
+  as?: ElementType;
 }
 
 export function Animate({
@@ -56,15 +56,14 @@ export function Animate({
     ...style,
   };
 
-  // @ts-expect-error — dynamic tag
+  const Component = Tag as ElementType;
   return (
-    <Tag ref={ref} className={className} style={animStyle}>
+    <Component ref={ref} className={className} style={animStyle}>
       {children}
-    </Tag>
+    </Component>
   );
 }
 
-/** Stagger children automatically */
 export function AnimateGroup({
   children,
   className,

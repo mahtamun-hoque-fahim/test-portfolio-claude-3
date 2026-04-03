@@ -3,17 +3,14 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
-import { getProjectBySlug, getAllPublishedProjects } from "@/lib/queries/projects";
+import { getProjectBySlug } from "@/lib/queries/projects";
 import { Gallery } from "@/components/portfolio/Gallery";
 import { RelatedProjects } from "@/components/portfolio/RelatedProjects";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: { slug: string };
-}
-
-export async function generateStaticParams() {
-  const projects = await getAllPublishedProjects();
-  return projects.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
