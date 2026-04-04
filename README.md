@@ -1,6 +1,8 @@
 # MAHTAMUN Portfolio — CMS
 
-A clean, minimal graphic design portfolio with a built-in CMS. Built with Next.js 14 App Router, Neon (PostgreSQL), Drizzle ORM, Clerk auth, and Cloudinary.
+A clean, minimal graphic design portfolio with a built-in CMS. Built with Next.js 14 App Router, Neon (PostgreSQL), Drizzle ORM, NextAuth v5, and Cloudinary.
+
+Live: [test-portfolio-claude-3-hduzehq0p.vercel.app](https://test-portfolio-claude-3-hduzehq0p.vercel.app)
 
 ---
 
@@ -11,10 +13,10 @@ A clean, minimal graphic design portfolio with a built-in CMS. Built with Next.j
 | Framework | Next.js 14 (App Router) |
 | Styling | Tailwind CSS |
 | Database | Neon (PostgreSQL) + Drizzle ORM |
-| Auth | Clerk |
+| Auth | NextAuth v5 (credentials — no external service) |
 | Media | Cloudinary |
 | Email | Resend |
-| Deployment | Vercel / Cloudflare Pages |
+| Deployment | Vercel |
 
 ---
 
@@ -36,18 +38,19 @@ cp .env.local.example .env.local
 
 Fill in all values in `.env.local`:
 
-| Variable | Where to get it |
+| Variable | Description |
 |---|---|
-| `DATABASE_URL` | [neon.tech](https://neon.tech) → New project → Connection string |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | [clerk.com](https://clerk.com) → API Keys |
-| `CLERK_SECRET_KEY` | Clerk dashboard → API Keys |
+| `DATABASE_URL` | Neon connection string — [neon.tech](https://neon.tech) |
+| `AUTH_SECRET` | Random secret — `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
+| `ADMIN_EMAIL` | Your admin login email |
+| `ADMIN_PASSWORD_HASH` | bcrypt hash of your password (rounds=12) — see `.env.local.example` for instructions |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | [cloudinary.com](https://cloudinary.com) → Dashboard |
 | `CLOUDINARY_API_KEY` | Cloudinary → Settings → API Keys |
 | `CLOUDINARY_API_SECRET` | Cloudinary → Settings → API Keys |
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Cloudinary → Settings → Upload → Add upload preset (unsigned) |
 | `RESEND_API_KEY` | [resend.com](https://resend.com) → API Keys |
-| `CONTACT_EMAIL` | Your email address for inquiry notifications |
-| `NEXT_PUBLIC_SITE_URL` | Your production URL |
+| `CONTACT_EMAIL` | Email address to receive inquiry notifications |
+| `NEXT_PUBLIC_APP_URL` | Your production URL (e.g. `https://yourdomain.com`) |
 
 ### 3. Set up the database
 
@@ -65,7 +68,26 @@ npx tsx src/db/seed.ts
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000). Admin is at [http://localhost:3000/admin](http://localhost:3000/admin).
+
+---
+
+## Auth
+
+Authentication is handled entirely by **NextAuth v5** with a credentials provider — no external auth service or dashboard required.
+
+- Admin credentials are stored as environment variables (`ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH`)
+- Passwords are hashed with bcrypt (12 rounds)
+- Sessions use JWT strategy
+- `/admin/*` routes are protected via middleware
+- All admin API routes verify session server-side
+
+To generate a bcrypt hash for your password:
+```bash
+npm install -g bcryptjs
+node -e "const b = require('bcryptjs'); b.hash('your-password', 12).then(console.log)"
+```
+Or use [bcrypt-generator.com](https://bcrypt-generator.com) with rounds set to 12.
 
 ---
 
@@ -73,40 +95,44 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ```
 src/
+├── auth.ts                     # NextAuth config (credentials provider)
+├── middleware.ts               # Protects /admin/* routes
 ├── app/
-│   ├── (public)/           # Public-facing portfolio
-│   │   ├── page.tsx        # Home — hero, featured work, services, CTA
-│   │   ├── work/           # Work index + project detail [slug]
-│   │   ├── about/          # About page
-│   │   └── contact/        # Contact form
-│   ├── admin/              # CMS (Clerk protected)
-│   │   ├── page.tsx        # Dashboard with stats
-│   │   ├── projects/       # Project list, new, edit
-│   │   ├── categories/     # Category management
-│   │   ├── media/          # Cloudinary media library
-│   │   ├── inquiries/      # Contact form inbox
-│   │   └── settings/       # Site settings (hero, about, SEO, social)
-│   ├── api/                # API routes
-│   │   ├── contact/        # Public contact form POST
-│   │   └── admin/          # Protected CRUD endpoints
-│   ├── sign-in/            # Clerk sign-in page
-│   ├── sitemap.ts          # Auto-generated XML sitemap
-│   └── robots.ts           # Robots.txt
+│   ├── (public)/               # Public-facing portfolio
+│   │   ├── page.tsx            # Home — hero, featured work, services, CTA
+│   │   ├── work/               # Work index + project detail [slug]
+│   │   ├── about/              # About page
+│   │   └── contact/            # Contact form
+│   ├── admin/                  # CMS (NextAuth protected)
+│   │   ├── page.tsx            # Dashboard with stats
+│   │   ├── projects/           # Project list, new, edit
+│   │   ├── categories/         # Category management
+│   │   ├── media/              # Cloudinary media library
+│   │   ├── inquiries/          # Contact form inbox
+│   │   └── settings/           # Site settings (hero, about, SEO, social)
+│   ├── api/
+│   │   ├── auth/[...nextauth]/ # NextAuth route handler
+│   │   ├── contact/            # Public contact form POST
+│   │   └── admin/              # Protected CRUD endpoints
+│   ├── sign-in/                # Custom credentials login page
+│   ├── sitemap.ts              # Auto-generated XML sitemap
+│   └── robots.ts               # robots.txt
 ├── components/
-│   ├── layout/             # SiteNav, SiteFooter
-│   ├── portfolio/          # WorkGrid, ContactForm
-│   └── admin/              # AdminSidebar, ProjectForm, ProjectActions,
-│                           # MediaLibraryClient, SettingsClient,
-│                           # InquiriesClient, CategoriesClient
+│   ├── layout/                 # SiteNav, SiteFooter
+│   ├── portfolio/              # WorkGrid, ContactForm, Gallery, RelatedProjects
+│   └── admin/                  # AdminSidebar, ProjectForm, ProjectActions,
+│                               # MediaLibraryClient, SettingsClient,
+│                               # InquiriesClient, CategoriesClient,
+│                               # SortableProjectList, SignOutButton
 ├── db/
-│   ├── index.ts            # Neon + Drizzle connection
-│   ├── schema/index.ts     # projects, categories, inquiries, site_settings
-│   └── seed.ts             # Default data seed
+│   ├── index.ts                # Neon + Drizzle connection
+│   ├── schema/index.ts         # projects, categories, inquiries, site_settings
+│   └── seed.ts                 # Default data seed
 └── lib/
-    ├── queries/            # Data access layer (projects, categories, settings)
-    ├── cloudinary.ts       # Cloudinary helpers
-    ├── validations.ts      # Zod schemas
-    └── utils.ts            # cn, slugify, formatDate
+    ├── queries/                # Data access layer (projects, categories, settings)
+    ├── cloudinary.ts           # Cloudinary helpers
+    ├── validations.ts          # Zod schemas
+    └── utils.ts                # cn, slugify, formatDate
 ```
 
 ---
@@ -119,7 +145,7 @@ src/
 - Tags, services, client, year metadata
 - Publish / unpublish toggle
 - Featured flag (shows on homepage)
-- Sort order control
+- Drag-and-drop sort order
 
 ### Categories
 - Full CRUD inline editor
@@ -158,108 +184,81 @@ npx tsx src/db/seed.ts  # Re-seed default data
 
 ---
 
-## Deployment
+## Deployment (Vercel)
 
-### Vercel (recommended)
-1. Import repo in [vercel.com](https://vercel.com)
-2. Add all env vars in Vercel dashboard
-3. Deploy — it just works
+1. Import repo at [vercel.com](https://vercel.com)
+2. Add all env vars in the Vercel dashboard (see table above)
+3. Deploy
 
-### Cloudflare Pages
-> Note: Some server-only packages may require `edge` runtime adjustments.
-1. Connect repo in Cloudflare Pages
-2. Build command: `npm run build`
-3. Output: `.next`
-4. Add env vars
+Required Vercel env vars:
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD_HASH`
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`
+- `RESEND_API_KEY`
+- `CONTACT_EMAIL`
+- `NEXT_PUBLIC_APP_URL`
 
 ---
 
 ## Design System
 
-**Fonts:** Cormorant (display/headings) + DM Sans (body) + DM Mono (labels/code)
+See **[DESIGN.md](./DESIGN.md)** for the full design guide — colours, typography, spacing, components, and animation system.
 
-**Palette:**
+Quick reference:
+
+**Fonts:** Cormorant (display) · DM Sans (body) · DM Mono (labels)
+
 | Token | Value | Use |
 |---|---|---|
 | `ink` | `#111111` | Primary text |
 | `ink-soft` | `#333333` | Body text |
-| `ink-muted` | `#666666` | Secondary text |
-| `paper` | `#FAFAF8` | Background |
-| `paper-warm` | `#F5F3EF` | Card backgrounds |
+| `ink-muted` | `#666666` | Secondary / captions |
+| `paper` | `#FAFAF8` | Page background |
+| `paper-warm` | `#F5F3EF` | Card / sidebar backgrounds |
 | `paper-border` | `#E8E6E1` | Borders, dividers |
-| `accent` | `#C8A96E` | Gold accent, highlights |
+| `accent` | `#C8A96E` | Gold highlight |
 
 ---
 
 ## Animation System
 
-Phase 3 adds a full scroll-driven animation layer:
-
-| Component | File | Description |
-|---|---|---|
-| `ScrollReveal` | `components/ui/ScrollReveal.tsx` | Wires IntersectionObserver to `.reveal`, `.reveal-left`, `.reveal-scale` classes |
-| `Animate` | `components/ui/Animate.tsx` | Programmatic fade-up wrapper with delay & threshold props |
-| `AnimatedNumber` | `components/ui/AnimatedNumber.tsx` | Counts up to a value when scrolled into view |
-| `MarqueeStrip` | `components/ui/MarqueeStrip.tsx` | Seamless infinite horizontal scroll strip |
-| `CustomCursor` | `components/ui/CustomCursor.tsx` | Dot + lagged ring cursor (pointer-fine devices only) |
-| `ScrollProgress` | `components/ui/ScrollProgress.tsx` | Gold accent bar at top of page tracking read progress |
-| `PageTransition` | `components/ui/PageTransition.tsx` | Fade+slide on route change |
-| `BlurImage` | `components/ui/BlurImage.tsx` | Progressive blur-up image with skeleton shimmer |
-| `useInView` | `hooks/useInView.ts` | IntersectionObserver hook |
-| `useScrollProgress` | `hooks/useScrollProgress.ts` | Scroll progress 0→1 hook |
-
-**CSS utilities added** (in `globals.css`):
-- `.reveal`, `.reveal-left`, `.reveal-scale` + `.is-visible` — scroll-triggered classes
-- `.hover-lift` — smooth lift + shadow on hover
-- `.img-zoom` — scale image on hover
-- `.skeleton` — shimmer loading state
-- `.stagger-children` — auto-stagger up to 6 children
-- `.page-enter` — one-shot page load animation
-- `@keyframes marquee`, `scrollLine`, `shimmer`, `pageEnter`
-- View Transitions API (`@view-transition { navigation: auto }`)
-
-**Usage examples:**
-```tsx
-// Scroll reveal via CSS class
-<section className="reveal" data-delay="200">...</section>
-
-// Programmatic animated wrapper
-<Animate delay={300} y={32}>
-  <Card />
-</Animate>
-
-// Animated stat counter
-<AnimatedNumber value={50} suffix="+" />
-
-// Marquee
-<MarqueeStrip items={["Brand Identity", "Logo Design"]} speed={25} />
-```
-
----
-
-## OG Images
-
-Auto-generated at build/request time via `next/og`:
-
-| Route | Output |
+| Component | Description |
 |---|---|
-| `/opengraph-image` | Light grid card — site name, heading, category tags |
-| `/work/[slug]/opengraph-image` | Dark card — project title, tagline, category |
+| `ScrollReveal` | Wires IntersectionObserver to `.reveal`, `.reveal-left`, `.reveal-scale` CSS classes |
+| `Animate` | Programmatic fade-up wrapper with `delay` and `y` props |
+| `AnimatedNumber` | Counts up to a value when scrolled into view |
+| `MarqueeStrip` | Seamless infinite horizontal scroll strip |
+| `CustomCursor` | Dot + lagged ring cursor (pointer-fine devices only) |
+| `ScrollProgress` | Gold accent bar tracking read progress |
+| `PageTransition` | Fade + slide on route change |
+| `BlurImage` | Progressive blur-up image with skeleton shimmer |
 
 ---
 
 ## Performance
 
-- **AVIF + WebP** image formats via `next/image`
-- **30-day CDN cache** on Cloudinary images
-- **Immutable cache** on `/_next/static/*`
-- `removeConsole` in production build
+- AVIF + WebP via `next/image`
+- 30-day CDN cache on Cloudinary images
+- Immutable cache on `/_next/static/*`
+- `removeConsole` in production
 - `optimizePackageImports` for `lucide-react` and `date-fns`
 - Security headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`
 
 ---
 
-- [x] **Phase 1** — Scaffold, DB schema, public portfolio pages, admin CMS shell
-- [x] **Phase 2** — About, Contact + Resend email, Media library, Settings editor, Inquiries inbox, Categories, SEO, 404/Error pages
-- [x] **Phase 3** — Animations, scroll-reveal, custom cursor, marquee strips, animated stats, OG image generation (home + per-project), performance optimisations, security headers, Cloudflare Pages config, Vercel config
-- [x] **Phase 4** — Image lightbox gallery, related projects, drag-and-drop sort order, gallery multi-upload in admin, animated about page with stats, enhanced project detail page, granular loading skeletons for every route
+## Roadmap
+
+- [x] Phase 1 — Scaffold, DB schema, public portfolio pages, admin CMS shell
+- [x] Phase 2 — About, Contact + Resend email, Media library, Settings editor, Inquiries inbox, Categories, SEO, 404/Error pages
+- [x] Phase 3 — Animations, scroll-reveal, custom cursor, marquee, animated stats, OG image generation, performance, security headers
+- [x] Phase 4 — Image lightbox gallery, related projects, drag-and-drop sort, granular loading skeletons
+- [x] Phase 5 — Migrated from Clerk to NextAuth v5 (self-hosted credentials, no external auth service)
+- [ ] Prev / next navigation on project pages
+- [ ] Pagination on work index
+- [ ] Search / filter by category
+- [ ] Dark mode
