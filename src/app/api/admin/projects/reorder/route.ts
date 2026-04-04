@@ -1,12 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const { order } = await req.json() as {

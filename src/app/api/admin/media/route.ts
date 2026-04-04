@@ -1,10 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
 
 export async function DELETE(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const { publicId } = await req.json();

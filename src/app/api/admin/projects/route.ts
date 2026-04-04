@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { createProject } from "@/lib/queries/projects";
 import { projectSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();

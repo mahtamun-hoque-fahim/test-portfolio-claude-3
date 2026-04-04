@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
+import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <SessionProvider>
       <html lang="en">
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,6 +42,6 @@ export default function RootLayout({
           <Toaster position="bottom-right" richColors />
         </body>
       </html>
-    </ClerkProvider>
+    </SessionProvider>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { SignOutButton } from "@/components/admin/SignOutButton";
 
 export default function AdminLayout({
   children,
@@ -29,7 +29,7 @@ export default function AdminLayout({
 
         {/* User */}
         <div className="mt-auto p-4 border-t border-paper-border flex items-center gap-3">
-          <UserButton afterSignOutUrl="/" />
+          <SignOutButton />
           <div>
             <p className="text-xs text-ink-soft font-medium">Admin</p>
             <Link

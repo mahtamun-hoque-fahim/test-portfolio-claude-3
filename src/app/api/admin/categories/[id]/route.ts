@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { updateCategory, deleteCategory } from "@/lib/queries/categories";
 import { categorySchema } from "@/lib/validations";
@@ -8,8 +8,8 @@ interface Params {
 }
 
 export async function PUT(req: Request, { params }: Params) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const id = parseInt(params.id);
   if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
@@ -26,8 +26,8 @@ export async function PUT(req: Request, { params }: Params) {
 }
 
 export async function DELETE(_req: Request, { params }: Params) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const id = parseInt(params.id);
   if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
